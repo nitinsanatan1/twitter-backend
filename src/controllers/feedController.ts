@@ -2,12 +2,17 @@ import e, { Request, Response } from 'express';
 import feedModel from '../models/feed';
 import { AuthenticatedRequest } from '../middleware/authenticationMiddleware';
 import followModel from '../models/follow';
+import { createPostSchema } from '../joiValidator/joiValidation';
 
 export const feedController = {
     // Post a new feed
     post: async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         try {
         const { text } = req.body;
+        const {error} = createPostSchema.validate(req.body);
+        if ( error ) {
+            res.status(500).send(error.details[0].message);
+        }
         const userId = req.user?.userId;
         const newFeed = new feedModel({ user: userId, text });
         await newFeed.save();
